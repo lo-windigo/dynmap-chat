@@ -1,18 +1,44 @@
 <!doctype html>
 
 <head>
-	<title>Chat Test</title>
-	<script src="jquery.js"></script>
+	<title>Chat Example</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 	<script src="dynmap-chat.js"></script>
+	<script>
+		$(function() {
+			$(document.forms.json-url).submit(
+			function(e){
+				if(this.json == "") {
+					$("#example").dmChat("./example.json");
+				}
+				else {
+					$("#example").dmChat(this.json);
+				}
+			});
+		});
+	</script>
 </head>
 
 <body>
 	<h1>DynMap Test</h1>
-	<div id="block-block-2">
-		<div class="content">
+	<div id="example">
+		<p>
+			This is a short example of the DynmapChat jQuery plugin. Once you fill out
+			the details below, this message will be replaced with an example of the
+			chat box.
+		</p>
+		<form name="json-url">
 			<p>
-				This is a bunch of stupid crap that will be replaced.
+				<label>Please paste the address of your DynMap: <input name="json"
+					type="text"></label>
 			</p>
-		</div>
+			<p>
+				Note: If you leave out the URL of your own DynMap, static example chat
+				will be used.
+			</p>
+			<p>
+				<input type="submit" value="Test the plugin!">
+			</p>
+		</form>
 	</div>
 </body>
