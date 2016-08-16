@@ -6,7 +6,7 @@ DynMap Chat Importer
 Displays server chat pulled from the DynMap plugin
 ---
 
-by Windigo < http://fragdev.com/ >
+by Windigo < https://fragdev.com/ >
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -33,9 +33,11 @@ License along with this program.  If not, see
 
 		// If we haven't been given a feed, bail!
 		if(!feed) {
-			console.log("dmChat(): No feed specified!";
+			console.log("dmChat(): No feed specified!");
 			return this;
 		}
+
+		feed = feed+"up/world/world/";
 
 		// Set up our chat cache & display box
 		cache = [];
@@ -49,68 +51,72 @@ License along with this program.  If not, see
 
 		this.empty().append(chatBox);
 
-		return this;
-	}
+		// Refresh chat box on a defined interval
+		setInterval(function(feed) {
+	
 
-	// Update Chat with new values
-	function UpdateChat() {
+		console.log("dmChat(): Polling JSON feed at "+feed+".");
 
 		// Pull new chat messages from the JSON feed
 		$.getJSON(feed,
-		function(data) {
+			function(data) {
 
-			// Add messages to the cache
-			$(data.updates).each(function(i, item) {
+				console.log("dmChat(): JSON data retrieved. Processing...");
 
-				if(item.type == 'chat') {
+				// Add messages to the cache
+				$(data.updates).each(function(i, item) {
 
-					// Check for duplicates
-					var match = $(cache)
-					.filter(function(j) {
+					if(item.type == 'chat') {
 
-						return (this.timestamp == item.timestamp &&
-						 this.playerName == item.playerName &&
-						 this.message == item.message);
+						// Check for duplicates
+						var match = $(cache)
+						.filter(function(j) {
 
-					}).length;
+							return (this.timestamp == item.timestamp &&
+							 this.playerName == item.playerName &&
+							 this.message == item.message);
 
-					// If we don't have this item in the cache, add it
-					if(match < 1) {
+						}).length;
 
-						cache.push(item);
+						// If we don't have this item in the cache, add it
+						if(match < 1) {
+
+							cache.push(item);
+						}
 					}
+				});
+
+				// Sort cache by timestamp, descending
+				cache.sort(function(a, b) {
+
+					if(a.timestamp > b.timestamp)
+						return -1;
+
+					if(a.timestamp < b.timestamp)
+						return 1;
+
+					return 0;
+				});
+
+				// Trim cache of older values
+				if(cache.length > settings.cacheLength) {
+
+					cache = cache.slice(0, settings.cacheLength - 1);
 				}
+
+				chatBox.empty();
+
+				// Covert cache to HTML elements
+				$(cache).each(function(i, item) {
+				
+					chatBox.append('<li class="dm-message"><strong class="dm-player">'+
+						item.playerName+'</strong>: '+item.message+'</li>');
+				});
 			});
 
-			// Sort cache by timestamp, descending
-			cache.sort(function(a, b) {
+		}, settings.updateInterval * 1000, feed);
 
-				if(a.timestamp > b.timestamp)
-					return -1;
+		return this;
+	};
 
-				if(a.timestamp < b.timestamp)
-					return 1;
-
-				return 0;
-			});
-
-			// Trim cache of older values
-			if(cache.length > settings.cacheLength) {
-
-				cache = cache.slice(0, settings.cacheLength - 1);
-			}
-
-			chatBox.empty();
-
-			// Covert cache to HTML elements
-			$(cache).each(function(i, item) {
-			
-				chatBox.append('<li class="dm-message"><strong class="dm-player">'+
-					item.playerName+'</strong>: '+item.message+'</li>');
-			});
-		});
-
-		// Refresh chat box on a defined interval
-		setTimeout(UpdateChat, settings.updateInterval * 1000);
-	}
 })(jQuery);
